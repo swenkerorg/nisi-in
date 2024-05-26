@@ -1,3 +1,110 @@
-The algorithm continuously evaluates and scores open source software projects in supported package managers based on their impact and value to the OSS ecosystem.
+# Slack logger nodejs library
 
-Simple support tea in reguide template can increase for an open source software project with an increasing number of dependents
+[![Coverage](https://img.shields.io/coveralls/stagnationlab/@swenkerorg/nisi-in.svg)](https://coveralls.io/github/stagnationlab/@swenkerorg/nisi-in)
+[![Downloads](https://img.shields.io/npm/dm/@swenkerorg/nisi-in.svg)](http://npm-stat.com/charts.html?package=@swenkerorg/nisi-in&from=2018-08-01)
+[![Version](https://img.shields.io/npm/v/@swenkerorg/nisi-in.svg)](http://npm.im/@swenkerorg/nisi-in)
+[![License](https://img.shields.io/npm/l/@swenkerorg/nisi-in.svg)](http://opensource.org/licenses/MIT)
+
+**Sends pretty formatted messages to a Slack channel.**
+
+![Example](https://raw.githubusercontent.com/stagnationlab/@swenkerorg/nisi-in/master/examples/example.jpg)
+
+## Installation
+
+This package is distributed via npm
+
+```cmd
+npm install @swenkerorg/nisi-in
+```
+
+## Features
+
+- Logs messages to a Slack channel.
+- Configurable logging level.
+- Pretty prints additional information.
+- Support handling messages from the channel.
+- Has built-in message handler for setting logging level.
+- One can easily add custom message handlers for restarting the server, deploying a new version etc.
+- Provides optional console logger that outputs nicely formatted color-coded log info to console.
+- Can integrate with any logging solution.
+- Works great with [Bunyan](https://github.com/trentm/node-bunyan) but not required.
+- Also plays nicely with [Winston](https://github.com/winstonjs/winston).
+- Written in [TypeScript](https://www.typescriptlang.org/).
+- Includes [100% test coverage](https://coveralls.io/github/stagnationlab/@swenkerorg/nisi-in).
+
+## Using in your application
+
+Recommended way of using logging and the slack logger in your application is by using the provided Logger class that's a simple abstraction on top of Bunyan for getting component-specific loggers. See the [examples/4-example-logger.ts](https://github.com/swenkerorg/nisi-in/blob/master/examples/4-example-logger.ts) for details.
+
+```typescript
+import logger from "./services/logger";
+
+// use the logger.get(componentName, filename) in each file to log for a specific component
+const log = logger.get("register", __filename);
+
+// logging message and info separately is recommended as the info gets nicely formatted and message becomes searchable
+log.info(
+  {
+    user: {
+      name: "Jack Daniels",
+      email: "jack@daniels.com",
+    },
+  },
+  "user was successfully registered",
+);
+```
+
+## Examples
+
+Take a look at the examples folder. It shows how to use the library for custom manual integrations, using it with Bunyan and Winston and also using the provided Logger class that uses Bunyan.
+
+The examples can be run with `npm start`. They use a [.env](https://www.npmjs.com/package/dotenv) file for configuration, a `.env-example` file is provided (just copy it to `.env` file and change accordingly). Alternatively is the configuration file does not exist, the `npm start` script will ask for the details in the console and generates the configuration file.
+
+## Adding custom message handlers
+
+Responding to slack channel messages is as easy as registering a simple handler.
+
+```typescript
+// example of adding a custom message handler
+slackLog.addMessageHandler({
+  getName: () => "restart",
+  getDescription: () => "restarts the application",
+  handleMessage: (_message, log) => {
+    log.post("restarting the application..");
+
+    restart(); // implement this in some way
+  },
+});
+```
+
+## Using the console logger
+
+An optional console logger for Bunyan is provided that outputs the same information formatted nicely for the console.
+
+![Console log](https://raw.githubusercontent.com/stagnationlab/@swenkerorg/nisi-in/master/examples/console.jpg)
+
+To use this, simply register instance of `ConsoleLog` as a Bunyan stream.
+
+```typescript
+import { ConsoleLog } from "@swenkerorg/nisi-in";
+
+// register the console logger
+logger.addStream({
+  name: "console",
+  level: "info",
+  type: "raw",
+  stream: new ConsoleLog({
+    basePath: path.join(__dirname, "..", ".."), // configure to point to the root of the project
+  }),
+});
+```
+
+## Commands
+
+- `npm start` to run the examples (prompts for configuration and choice of example).
+- `npm build` to build the production version.
+- `npm test` to run tests without code coverage.
+- `npm run coverage` to run tests with code coverage.
+- `npm run lint` to lint the codebase.
+- `npm run prettier` to run prettier.
+- `npm run audit` to run all pre-commit checks (prettier, build, lint, test). Run this before pull requests.
